@@ -1,0 +1,63 @@
+
+If (Ba <=  0.27 ) then 
+|     If (Mg <=  2.41 ) then 
+|     |     If (K <=  0.03 ) then 
+|     |     |     If (Na <=  13.75 ) then 'build wind non-float' (3.0)
+|     |     |     Else If (Na >  13.75 ) then tableware (9.0)
+|     |     Else If (K >  0.03 ) then 
+|     |     |     If (Na <=  13.49 ) then 
+|     |     |     |     If (RI <=  1.52369 ) then 
+|     |     |     |     |     If (Al <=  1.45 ) then headlamps (2.0/1.0)
+|     |     |     |     |     Else If (Al >  1.45 ) then containers (11.0)
+|     |     |     |     Else If (RI >  1.52369 ) then 'build wind non-float' (3.0)
+|     |     |     Else If (Na >  13.49 ) then 
+|     |     |     |     If (Al <=  1.65 ) then 'build wind non-float' (5.0)
+|     |     |     |     Else If (Al >  1.65 ) then headlamps (2.0/1.0)
+|     Else If (Mg >  2.41 ) then 
+|     |     If (Al <=  1.41 ) then 
+|     |     |     If (RI <=  1.51694 ) then 
+|     |     |     |     If (RI <=  1.51596 ) then 'build wind float' (3.0)
+|     |     |     |     Else If (RI >  1.51596 ) then 
+|     |     |     |     |     If (Fe <=  0.12 ) then 
+|     |     |     |     |     |     If (Mg <=  3.54 ) then 'vehic wind float' (5.0)
+|     |     |     |     |     |     Else If (Mg >  3.54 ) then 'vehic wind float' (4.0/2.0)
+|     |     |     |     |     Else If (Fe >  0.12 ) then 'build wind non-float' (2.0)
+|     |     |     Else If (RI >  1.51694 ) then 
+|     |     |     |     If (K <=  0.23 ) then 
+|     |     |     |     |     If (Mg <=  3.34 ) then 'build wind non-float' (2.0)
+|     |     |     |     |     Else If (Mg >  3.34 ) then 
+|     |     |     |     |     |     If (Si <=  72.64 ) then 
+|     |     |     |     |     |     |     If (Na <=  14.01 ) then 'build wind float' (14.0)
+|     |     |     |     |     |     |     Else If (Na >  14.01 ) then 
+|     |     |     |     |     |     |     |     If (RI <=  1.52196 ) then 
+|     |     |     |     |     |     |     |     |     If (Na <=  14.32 ) then 'vehic wind float' (2.0)
+|     |     |     |     |     |     |     |     |     Else If (Na >  14.32 ) then 'build wind float' (2.0)
+|     |     |     |     |     |     |     |     Else If (RI >  1.52196 ) then 
+|     |     |     |     |     |     |     |     |     If (Na <=  14.2 ) then 'vehic wind float' (2.0/1.0)
+|     |     |     |     |     |     |     |     |     Else If (Na >  14.2 ) then 'build wind float' (2.0)
+|     |     |     |     |     |     Else If (Si >  72.64 ) then 'vehic wind float' (3.0)
+|     |     |     |     Else If (K >  0.23 ) then 
+|     |     |     |     |     If (Mg <=  3.75 ) then 
+|     |     |     |     |     |     If (Fe <=  0.14 ) then 
+|     |     |     |     |     |     |     If (RI <=  1.52099 ) then 'build wind float' (36.0)
+|     |     |     |     |     |     |     Else If (RI >  1.52099 ) then 'build wind non-float' (2.0/1.0)
+|     |     |     |     |     |     Else If (Fe >  0.14 ) then 
+|     |     |     |     |     |     |     If (Al <=  1.17 ) then 'build wind non-float' (5.0)
+|     |     |     |     |     |     |     Else If (Al >  1.17 ) then 
+|     |     |     |     |     |     |     |     If (K <=  0.61 ) then 'build wind float' (4.0)
+|     |     |     |     |     |     |     |     Else If (K >  0.61 ) then 'build wind float' (2.0/1.0)
+|     |     |     |     |     Else If (Mg >  3.75 ) then 'build wind non-float' (10.0)
+|     |     Else If (Al >  1.41 ) then 
+|     |     |     If (Si <=  72.49 ) then 
+|     |     |     |     If (Ca <=  8.28 ) then 'build wind non-float' (6.0)
+|     |     |     |     Else If (Ca >  8.28 ) then 
+|     |     |     |     |     If (RI <=  1.518 ) then 'vehic wind float' (3.0)
+|     |     |     |     |     Else If (RI >  1.518 ) then 'vehic wind float' (2.0/1.0)
+|     |     |     Else If (Si >  72.49 ) then 'build wind non-float' (39.0/6.0)
+Else If (Ba >  0.27 ) then 
+|     If (Si <=  70.16 ) then containers (2.0/1.0)
+|     Else If (Si >  70.16 ) then 
+|     |     If (Mg <=  3.2 ) then headlamps (25.0)
+|     |     Else If (Mg >  3.2 ) then headlamps (2.0/1.0)
+Number of Leaves:  31
+Size of the tree : 61

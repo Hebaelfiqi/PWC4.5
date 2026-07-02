@@ -1,0 +1,71 @@
+cff-version: 1.2.0
+message: "If you use this code or the datasets, please cite the article below."
+title: "PWC4.5 - Pairwise Comparative Classification (PWCCP)"
+authors:
+  - family-names: El-Fiqi
+    given-names: Heba
+  - family-names: Petraki
+    given-names: Eleni
+  - family-names: Abbass
+    given-names: Hussein A.
+repository-code: "https://github.com/Hebaelfiqi/PWC4.5"
+url: "https://sites.google.com/site/pairwiseccp"
+version: "1.0.0"
+date-released: "2026-07-03"
+license: MIT
+preferred-citation:
+  type: article
+  authors:
+    - family-names: El-Fiqi
+      given-names: Heba
+    - family-names: Petraki
+      given-names: Eleni
+    - family-names: Abbass
+      given-names: Hussein A.
+  title: "Pairwise comparative classification for translator stylometric analysis"
+  journal: "ACM Transactions on Asian and Low-Resource Language Information Processing"
+  volume: 16
+  issue: 1
+  year: 2016
+  month: 6
+  doi: "10.1145/2898997"
+references:
+  - type: conference-paper
+    authors:
+      - family-names: El-Fiqi
+        given-names: Heba
+      - family-names: Petraki
+        given-names: Eleni
+      - family-names: Abbass
+        given-names: Hussein A.
+    title: "A computational linguistic approach for the identification of translator stylometry using Arabic-English text"
+    conference:
+      name: "2011 IEEE International Conference on Fuzzy Systems (FUZZ-IEEE)"
+    year: 2011
+    start: 2039
+    end: 2045
+    doi: "10.1109/FUZZY.2011.6007535"
+  - type: thesis
+    authors:
+      - family-names: El-Fiqi
+        given-names: Heba
+    title: "Detection of Translator Stylometry using Pair-wise Comparative Classification and Network Motif Mining"
+    institution:
+      name: "University of New South Wales, Canberra"
+    year: 2013
+    doi: "10.26190/unsworks/16460"
+    url: "http://hdl.handle.net/1959.4/53020"
+  - type: article
+    authors:
+      - family-names: El-Fiqi
+        given-names: Heba
+      - family-names: Petraki
+        given-names: Eleni
+      - family-names: Abbass
+        given-names: Hussein A.
+    title: "Network motifs for translator stylometry identification"
+    journal: "PLOS ONE"
+    volume: 14
+    issue: 2
+    year: 2019
+    doi: "10.1371/journal.pone.0211809"

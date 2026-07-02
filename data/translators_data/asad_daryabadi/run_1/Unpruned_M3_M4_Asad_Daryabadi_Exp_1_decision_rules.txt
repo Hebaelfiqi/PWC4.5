@@ -1,0 +1,8 @@
+PWC4.5 Unpruned Tree
+__________________
+
+R(M3_ID5(p1),{M3_ID5(p1),M3_ID5(p2)}) = min : p1→Daryabadi, p2→Asad (23.0)
+R(M3_ID5(p1),{M3_ID5(p1),M3_ID5(p2)}) = eq : p1→Asad, p2→Daryabadi (0.0)
+R(M3_ID5(p1),{M3_ID5(p1),M3_ID5(p2)}) = max : p1→Asad, p2→Daryabadi (27.0)
+Number of Leaves:  3
+Size of the tree : 4

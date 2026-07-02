@@ -1,0 +1,10 @@
+
+If (outlook =  sunny ) then 
+|     If (humidity <=  75.0 ) then yes (2.0)
+|     Else If (humidity >  75.0 ) then no (3.0)
+Else If (outlook =  overcast ) then yes (4.0)
+Else If (outlook =  rainy ) then 
+|     If (windy =  FALSE ) then yes (3.0)
+|     Else If (windy =  TRUE ) then no (2.0)
+Number of Leaves:  5
+Size of the tree : 8

@@ -1,0 +1,11 @@
+
+If (petalwidth <=  0.6 ) then Iris-setosa (50.0)
+Else If (petalwidth >  0.6 ) then 
+|     If (petalwidth <=  1.7 ) then 
+|     |     If (petallength <=  4.9 ) then Iris-versicolor (48.0/1.0)
+|     |     Else If (petallength >  4.9 ) then 
+|     |     |     If (petalwidth <=  1.5 ) then Iris-virginica (3.0)
+|     |     |     Else If (petalwidth >  1.5 ) then Iris-versicolor (3.0/1.0)
+|     Else If (petalwidth >  1.7 ) then Iris-virginica (46.0/1.0)
+Number of Leaves:  5
+Size of the tree : 9

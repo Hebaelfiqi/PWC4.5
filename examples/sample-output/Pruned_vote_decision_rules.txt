@@ -1,0 +1,21 @@
+
+If (physician-fee-freeze =  y ) then 
+|     If (synfuels-corporation-cutback =  n ) then 
+|     |     If (education-spending =  y ) then republican (125.78/1.29)
+|     |     Else If (education-spending =  n ) then 
+|     |     |     If (religious-groups-in-schools =  y ) then 
+|     |     |     |     If (duty-free-exports =  y ) then 
+|     |     |     |     |     If (anti-satellite-test-ban =  n ) then democrat (2.47/0.36)
+|     |     |     |     |     Else If (anti-satellite-test-ban =  y ) then republican (2.03/0.0)
+|     |     |     |     Else If (duty-free-exports =  n ) then republican (9.27/0.58)
+|     |     |     Else If (religious-groups-in-schools =  n ) then republican (6.15/0.01)
+|     Else If (synfuels-corporation-cutback =  y ) then 
+|     |     If (mx-missile =  n ) then 
+|     |     |     If (adoption-of-the-budget-resolution =  n ) then republican (22.61/3.32)
+|     |     |     Else If (adoption-of-the-budget-resolution =  y ) then 
+|     |     |     |     If (anti-satellite-test-ban =  n ) then democrat (5.04/0.02)
+|     |     |     |     Else If (anti-satellite-test-ban =  y ) then republican (2.21)
+|     |     Else If (mx-missile =  y ) then democrat (6.03/1.03)
+Else If (physician-fee-freeze =  n ) then democrat (253.41/3.75)
+Number of Leaves:  10
+Size of the tree : 19

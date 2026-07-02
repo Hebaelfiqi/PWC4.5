@@ -1,0 +1,12 @@
+
+If (x1 =  A ) then 
+|     If (x2 <=  75.0 ) then C1 (2.0)
+|     Else If (x2 >  75.0 ) then C2 (2.31)
+Else If (x1 =  B ) then 
+|     If (x3 =  TRUE ) then C1 (2.0)
+|     Else If (x3 =  FALSE ) then C1 (2.31/0.31)
+Else If (x1 =  C ) then 
+|     If (x3 =  TRUE ) then C2 (2.0)
+|     Else If (x3 =  FALSE ) then C1 (3.38/0.38)
+Number of Leaves:  6
+Size of the tree : 10

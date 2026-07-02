@@ -1,0 +1,63 @@
+
+If (plas <=  127.0 ) then 
+|     If (mass <=  26.4 ) then 
+|     |     If (preg <=  7.0 ) then tested_negative (117.0/1.0)
+|     |     Else If (preg >  7.0 ) then 
+|     |     |     If (mass <=  0.0 ) then tested_positive (2.0)
+|     |     |     Else If (mass >  0.0 ) then tested_negative (13.0)
+|     Else If (mass >  26.4 ) then 
+|     |     If (age <=  28.0 ) then 
+|     |     |     If (mass <=  30.9 ) then 
+|     |     |     |     If (preg <=  5.0 ) then tested_negative (58.0)
+|     |     |     |     Else If (preg >  5.0 ) then tested_negative (2.0/1.0)
+|     |     |     Else If (mass >  30.9 ) then tested_negative (120.0/21.0)
+|     |     Else If (age >  28.0 ) then 
+|     |     |     If (plas <=  99.0 ) then tested_negative (55.0/10.0)
+|     |     |     Else If (plas >  99.0 ) then 
+|     |     |     |     If (pedi <=  0.561 ) then 
+|     |     |     |     |     If (age <=  54.0 ) then tested_negative (77.0/34.0)
+|     |     |     |     |     Else If (age >  54.0 ) then tested_negative (7.0)
+|     |     |     |     Else If (pedi >  0.561 ) then 
+|     |     |     |     |     If (preg <=  6.0 ) then 
+|     |     |     |     |     |     If (age <=  30.0 ) then tested_positive (4.0)
+|     |     |     |     |     |     Else If (age >  30.0 ) then 
+|     |     |     |     |     |     |     If (age <=  34.0 ) then 
+|     |     |     |     |     |     |     |     If (pres <=  66.0 ) then tested_negative (2.0/1.0)
+|     |     |     |     |     |     |     |     Else If (pres >  66.0 ) then tested_negative (5.0)
+|     |     |     |     |     |     |     Else If (age >  34.0 ) then 
+|     |     |     |     |     |     |     |     If (mass <=  33.1 ) then tested_positive (6.0)
+|     |     |     |     |     |     |     |     Else If (mass >  33.1 ) then 
+|     |     |     |     |     |     |     |     |     If (preg <=  1.0 ) then tested_negative (2.0)
+|     |     |     |     |     |     |     |     |     Else If (preg >  1.0 ) then tested_positive (2.0/1.0)
+|     |     |     |     |     Else If (preg >  6.0 ) then tested_positive (13.0)
+Else If (plas >  127.0 ) then 
+|     If (mass <=  29.9 ) then 
+|     |     If (plas <=  145.0 ) then 
+|     |     |     If (preg <=  1.0 ) then tested_negative (12.0)
+|     |     |     Else If (preg >  1.0 ) then tested_negative (29.0/6.0)
+|     |     Else If (plas >  145.0 ) then 
+|     |     |     If (age <=  25.0 ) then tested_negative (4.0)
+|     |     |     Else If (age >  25.0 ) then 
+|     |     |     |     If (age <=  61.0 ) then 
+|     |     |     |     |     If (mass <=  27.1 ) then tested_positive (12.0/1.0)
+|     |     |     |     |     Else If (mass >  27.1 ) then 
+|     |     |     |     |     |     If (pres <=  82.0 ) then 
+|     |     |     |     |     |     |     If (pedi <=  0.396 ) then 
+|     |     |     |     |     |     |     |     If (preg <=  5.0 ) then tested_positive (6.0)
+|     |     |     |     |     |     |     |     Else If (preg >  5.0 ) then tested_negative (2.0/1.0)
+|     |     |     |     |     |     |     Else If (pedi >  0.396 ) then tested_negative (3.0)
+|     |     |     |     |     |     Else If (pres >  82.0 ) then tested_negative (4.0)
+|     |     |     |     Else If (age >  61.0 ) then tested_negative (4.0)
+|     Else If (mass >  29.9 ) then 
+|     |     If (plas <=  157.0 ) then 
+|     |     |     If (pres <=  61.0 ) then 
+|     |     |     |     If (age <=  40.0 ) then tested_positive (13.0)
+|     |     |     |     Else If (age >  40.0 ) then tested_positive (2.0/1.0)
+|     |     |     Else If (pres >  61.0 ) then 
+|     |     |     |     If (age <=  30.0 ) then 
+|     |     |     |     |     If (insu <=  258.0 ) then tested_negative (31.0/13.0)
+|     |     |     |     |     Else If (insu >  258.0 ) then tested_negative (9.0)
+|     |     |     |     Else If (age >  30.0 ) then tested_positive (60.0/17.0)
+|     |     Else If (plas >  157.0 ) then tested_positive (92.0/12.0)
+Number of Leaves:  31
+Size of the tree : 61

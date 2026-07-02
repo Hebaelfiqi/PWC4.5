@@ -1,0 +1,9 @@
+
+If (tear-prod-rate =  reduced ) then none (12.0)
+Else If (tear-prod-rate =  normal ) then 
+|     If (astigmatism =  no ) then soft (6.0/1.0)
+|     Else If (astigmatism =  yes ) then 
+|     |     If (spectacle-prescrip =  myope ) then hard (3.0)
+|     |     Else If (spectacle-prescrip =  hypermetrope ) then none (3.0/1.0)
+Number of Leaves:  4
+Size of the tree : 7

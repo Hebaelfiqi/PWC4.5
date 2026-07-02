@@ -1,0 +1,3 @@
+0 (1000.0/492.0)
+Number of Leaves:  1
+Size of the tree : 1

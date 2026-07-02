@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 322" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#57606a"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="960" height="322" rx="10" fill="#ffffff" stroke="#d0d7de"/>
+
+  <!-- ===== Panel 1: one source, two translators ===== -->
+  <text x="160" y="34" text-anchor="middle" font-size="15" font-weight="bold" fill="#24292f">1. One source, two translators</text>
+
+  <!-- source doc -->
+  <rect x="120" y="52" width="80" height="52" rx="6" fill="#f6f8fa" stroke="#57606a"/>
+  <text x="160" y="74" text-anchor="middle" font-size="11" fill="#24292f">source</text>
+  <text x="160" y="90" text-anchor="middle" font-size="11" fill="#24292f">text</text>
+
+  <line x1="140" y1="108" x2="92" y2="150" stroke="#57606a" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="180" y1="108" x2="228" y2="150" stroke="#57606a" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- translation A -->
+  <rect x="40" y="156" width="105" height="72" rx="6" fill="#ddf4ff" stroke="#0969da"/>
+  <text x="92" y="176" text-anchor="middle" font-size="12" font-weight="bold" fill="#0969da">Translator A</text>
+  <text x="92" y="196" text-anchor="middle" font-size="10.5" fill="#24292f">style features</text>
+  <text x="92" y="212" text-anchor="middle" font-size="10.5" fill="#24292f">V1(p1), V2(p1), …</text>
+
+  <!-- translation B -->
+  <rect x="175" y="156" width="105" height="72" rx="6" fill="#fff1e5" stroke="#bc4c00"/>
+  <text x="228" y="176" text-anchor="middle" font-size="12" font-weight="bold" fill="#bc4c00">Translator B</text>
+  <text x="228" y="196" text-anchor="middle" font-size="10.5" fill="#24292f">style features</text>
+  <text x="228" y="212" text-anchor="middle" font-size="10.5" fill="#24292f">V1(p2), V2(p2), …</text>
+
+  <text x="160" y="262" text-anchor="middle" font-size="11" fill="#57606a">same content — different style,</text>
+  <text x="160" y="277" text-anchor="middle" font-size="11" fill="#57606a">so the data come in pairs</text>
+
+  <line x1="315" y1="150" x2="345" y2="150" stroke="#57606a" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- ===== Panel 2: paired data ===== -->
+  <text x="480" y="34" text-anchor="middle" font-size="15" font-weight="bold" fill="#24292f">2. The signal is in the pair</text>
+
+  <!-- mini table -->
+  <rect x="375" y="56" width="210" height="26" fill="#f6f8fa" stroke="#57606a"/>
+  <text x="405" y="74" text-anchor="middle" font-size="11" font-weight="bold" fill="#24292f">pair</text>
+  <text x="475" y="74" text-anchor="middle" font-size="11" font-weight="bold" fill="#24292f">V1</text>
+  <text x="555" y="74" text-anchor="middle" font-size="11" font-weight="bold" fill="#24292f">class</text>
+  <rect x="375" y="82" width="210" height="26" fill="#ddf4ff" stroke="#57606a"/>
+  <text x="405" y="100" text-anchor="middle" font-size="11" fill="#24292f">p1</text>
+  <text x="475" y="100" text-anchor="middle" font-size="11" fill="#24292f">0.28</text>
+  <text x="555" y="100" text-anchor="middle" font-size="11" fill="#0969da">A</text>
+  <rect x="375" y="108" width="210" height="26" fill="#fff1e5" stroke="#57606a"/>
+  <text x="405" y="126" text-anchor="middle" font-size="11" fill="#24292f">p2</text>
+  <text x="475" y="126" text-anchor="middle" font-size="11" fill="#24292f">0.53</text>
+  <text x="555" y="126" text-anchor="middle" font-size="11" fill="#bc4c00">B</text>
+
+  <!-- compare bracket -->
+  <path d="M 500 88 C 520 88 520 128 500 128" fill="none" stroke="#8250df" stroke-width="2"/>
+  <text x="536" y="152" text-anchor="middle" font-size="11" fill="#8250df">compare within</text>
+  <text x="536" y="166" text-anchor="middle" font-size="11" fill="#8250df">the pair: min / eq / max</text>
+
+  <text x="480" y="212" text-anchor="middle" font-size="11.5" fill="#24292f">Each value alone says little.</text>
+  <text x="480" y="230" text-anchor="middle" font-size="11.5" fill="#24292f">The <tspan font-weight="bold">relationship between the paired</tspan></text>
+  <text x="480" y="248" text-anchor="middle" font-size="11.5" fill="#24292f"><tspan font-weight="bold">values</tspan> is what separates A from B —</text>
+  <text x="480" y="266" text-anchor="middle" font-size="11.5" fill="#24292f">invisible to a classic row-by-row classifier.</text>
+
+  <!-- callout bridging to panel 3 (from Fig. 1a of the TALLIP article) -->
+  <text x="480" y="300" text-anchor="middle" font-size="11" font-style="italic" fill="#8250df">find the split that maximizes purity over the identified relations ⟶</text>
+
+  <line x1="615" y1="150" x2="645" y2="150" stroke="#57606a" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- ===== Panel 3: PWC4.5 ===== -->
+  <text x="800" y="34" text-anchor="middle" font-size="15" font-weight="bold" fill="#24292f">3. PWC4.5 splits on the relationship</text>
+
+  <ellipse cx="800" cy="80" rx="122" ry="24" fill="#f6f8fa" stroke="#24292f"/>
+  <text x="800" y="85" text-anchor="middle" font-size="11.5" fill="#24292f">R( V1(p1), {V1(p1), V1(p2)} )</text>
+
+  <line x1="742" y1="100" x2="706" y2="140" stroke="#24292f" stroke-width="1.5"/>
+  <line x1="858" y1="100" x2="894" y2="140" stroke="#24292f" stroke-width="1.5"/>
+  <text x="704" y="120" text-anchor="middle" font-size="11" font-style="italic" fill="#24292f">min</text>
+  <text x="896" y="120" text-anchor="middle" font-size="11" font-style="italic" fill="#24292f">max</text>
+
+  <rect x="656" y="144" width="100" height="44" rx="4" fill="#ffffff" stroke="#24292f"/>
+  <text x="706" y="162" text-anchor="middle" font-size="11" fill="#24292f">p1 → <tspan fill="#0969da" font-weight="bold">A</tspan></text>
+  <text x="706" y="180" text-anchor="middle" font-size="11" fill="#24292f">p2 → <tspan fill="#bc4c00" font-weight="bold">B</tspan></text>
+
+  <rect x="844" y="144" width="100" height="44" rx="4" fill="#ffffff" stroke="#24292f"/>
+  <text x="894" y="162" text-anchor="middle" font-size="11" fill="#24292f">p1 → <tspan fill="#bc4c00" font-weight="bold">B</tspan></text>
+  <text x="894" y="180" text-anchor="middle" font-size="11" fill="#24292f">p2 → <tspan fill="#0969da" font-weight="bold">A</tspan></text>
+
+  <text x="800" y="226" text-anchor="middle" font-size="12" fill="#24292f">Who translated it?</text>
+  <text x="800" y="248" text-anchor="middle" font-size="13" fill="#24292f">C4.5: <tspan font-weight="bold" fill="#cf222e">52.12%</tspan>   →   PWC4.5: <tspan font-weight="bold" fill="#1a7f37">80.23%</tspan></text>
+  <text x="800" y="270" text-anchor="middle" font-size="10.5" fill="#57606a">average accuracy over 21 translator pairs</text>
+</svg>

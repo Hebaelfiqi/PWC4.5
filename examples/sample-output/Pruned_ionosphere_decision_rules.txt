@@ -1,0 +1,21 @@
+
+If (a05 <=  0.0409 ) then b (67.0)
+Else If (a05 >  0.0409 ) then 
+|     If (a01 <=  0.0 ) then b (19.0)
+|     Else If (a01 >  0.0 ) then 
+|     |     If (a08 <=  -0.67273 ) then 
+|     |     |     If (a28 <=  -0.21793 ) then 
+|     |     |     |     If (a06 <=  -1.0 ) then b (2.0)
+|     |     |     |     Else If (a06 >  -1.0 ) then g (4.0)
+|     |     |     Else If (a28 >  -0.21793 ) then b (11.0)
+|     |     Else If (a08 >  -0.67273 ) then 
+|     |     |     If (a03 <=  0.26667 ) then 
+|     |     |     |     If (a03 <=  0.10135 ) then b (9.0)
+|     |     |     |     Else If (a03 >  0.10135 ) then g (4.0)
+|     |     |     Else If (a03 >  0.26667 ) then 
+|     |     |     |     If (a34 <=  0.86285 ) then g (224.0/12.0)
+|     |     |     |     Else If (a34 >  0.86285 ) then 
+|     |     |     |     |     If (a04 <=  0.05812 ) then b (5.0)
+|     |     |     |     |     Else If (a04 >  0.05812 ) then g (6.0/1.0)
+Number of Leaves:  10
+Size of the tree : 19

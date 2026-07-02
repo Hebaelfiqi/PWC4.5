@@ -1,0 +1,8 @@
+Id,parent,type,attribute,tree branch cond,tree branch value, child_node id,class
+1 , 0 , Decision , M3_ID5 , = , min , 2,
+,,,,= , eq , 3,
+,,,,= , max , 4,
+
+2 , 1 , Leaf ,   , ,,,p1?Daryabadi, p2?Asad,
+3 , 1 , Leaf ,   , ,,,p1?Asad, p2?Daryabadi,
+4 , 1 , Leaf ,   , ,,,p1?Asad, p2?Daryabadi,

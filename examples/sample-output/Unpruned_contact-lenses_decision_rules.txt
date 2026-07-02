@@ -1,0 +1,12 @@
+
+If (tear-prod-rate =  reduced ) then none (12.0)
+Else If (tear-prod-rate =  normal ) then 
+|     If (astigmatism =  no ) then 
+|     |     If (age =  young ) then soft (2.0)
+|     |     Else If (age =  pre-presbyopic ) then soft (2.0)
+|     |     Else If (age =  presbyopic ) then none (2.0/1.0)
+|     Else If (astigmatism =  yes ) then 
+|     |     If (spectacle-prescrip =  myope ) then hard (3.0)
+|     |     Else If (spectacle-prescrip =  hypermetrope ) then none (3.0/1.0)
+Number of Leaves:  6
+Size of the tree : 10

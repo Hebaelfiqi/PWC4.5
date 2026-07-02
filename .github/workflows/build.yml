@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Compile
+        run: |
+          mkdir -p bin
+          javac -d bin -cp lib/cli.jar src/*.java
+      - name: Smoke test (2D noise-free, expect 100.0%)
+        run: |
+          out=$(java -cp bin:lib/cli.jar PWC45 -ip data//2d_data//1st_exp// -f 2D_Noise_0.0 -u)
+          echo "accuracy: $out"
+          test "$out" = "100.0%"
+      - name: Smoke test (translator experiment, seed 42)
+        run: |
+          mkdir -p /tmp/tr_run
+          out=$(java -cp bin:lib/cli.jar PWC45 -ip data//translators_data//asad_daryabadi// -op /tmp/tr_run// -f M3_M4_Asad_Daryabadi_Exp_1 -u -o -b -r 42)
+          echo "accuracy: $out"
+          test -n "$out"
