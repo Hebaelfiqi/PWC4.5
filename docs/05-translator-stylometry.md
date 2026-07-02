@@ -1,10 +1,11 @@
 # Translator Stylometry Identification Problem
 
-> Corresponds to: the PhD thesis (2013) and the ACM TALLIP 2016 article
-> (translator identification experiments); the network-motif features are
-> detailed in the PLOS ONE 2019 article. Datasets:
+> Corresponds to: the network-motif translator-stylometry work of the PhD
+> thesis (2013), detailed in the PLOS ONE 2019 article; the PWC4.5 algorithm
+> applied here is from the ACM TALLIP 2016 article. Datasets:
 > [`../data/translators_data/`](../data/translators_data/) — see also the
-> [data documentation](../data/README.md).
+> [data documentation](../data/README.md), including data provenance and
+> acknowledgements (Tanzil, NLTK, Mfinder).
 
 ## Problem definition
 
@@ -18,19 +19,26 @@ We use parallel Arabic-to-English translations of the Holy Qur'an for this
 study. The Holy Qur'an is divided mainly into 114 surah (pl. suwar), also
 known as chapters, although they are not equal in length: a surah varies from
 three ayat (verses) to 286 ayat. We refer to them as chapters and verses in
-this study. The study uses the translations of 74 chapters of the Holy Qur'an,
-for seven translators (Asad, Daryabadi, Maududi, Pickthall, Raza, Sarwar,
-Yousif Ali), giving the 21 pairwise datasets under
-[`../data/translators_data/`](../data/translators_data/).
+this study. The study uses the translations of 74 chapters of the Holy Qur'an
+(the final six parts / *juz'*), for seven translators (Asad, Daryabadi,
+Maududi, Pickthall, Raza, Sarwar, Yousif Ali), giving the 21 pairwise
+datasets under [`../data/translators_data/`](../data/translators_data/).
+The translations were obtained from the [Tanzil](https://tanzil.net) Qur'an
+project; the repository distributes only the derived feature vectors, not the
+source texts (see [data provenance](../data/README.md#provenance-and-acknowledgements)).
 
 ## Feature extraction
 
 We target the translator style by detecting the repeated patterns in the
 translator's writings, using social network analysis. By representing the text
-as a word adjacency network, we can use network motifs to detect the existence
-of repeated patterns of ordered words — known in linguistics as "lexical
-chunks" — in the text. The attributes (features) of the examined dataset are
-the frequencies of network motifs of size three and size four.
+as a directed word-adjacency network (nodes = words, edges = "occurs
+immediately before" within a sentence), we can use network motifs to detect
+the existence of repeated patterns of ordered words — known in linguistics as
+"lexical chunks" — in the text. After lemmatization with the Natural Language
+Toolkit (NLTK), the size-three and size-four network motifs are counted with
+the Mfinder motif-detection tool; the attributes (features) of the examined
+dataset are the frequencies of these 13 size-three and 199 size-four motif
+types. See the PLOS ONE 2019 article for the full methodology.
 
 ## Results
 

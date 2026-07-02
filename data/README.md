@@ -49,12 +49,12 @@ different random train/test chapter splits.
 
 - Classes: the two translator names (e.g. `Asad`, `Daryabadi`).
 - Attributes (212, all continuous): frequencies of **network motifs** in the
-  word-adjacency network built from each translation —
-  `M3_ID1` … `M3_ID13` are the 13 connected 3-node motif types and
-  `M4_ID1` … `M4_ID199` are the 199 connected 4-node motif types.
-  Motif IDs follow the enumeration produced by the motif-detection tooling
-  used in the study (see the thesis and the PLOS ONE paper below for the
-  feature-extraction pipeline).
+  directed word-adjacency network built from each translation (nodes = words,
+  edges = "occurs immediately before" within a sentence) —
+  `M3_ID1` … `M3_ID13` are the 13 connected directed 3-node motif types and
+  `M4_ID1` … `M4_ID199` are the 199 connected directed 4-node motif types.
+  Motif IDs follow the enumeration used by the motif-detection tool (see
+  *Provenance and acknowledgements* below).
 - Pair encoding: each pair of consecutive lines is the *same source chapter*
   translated by the two translators — the pairing is what PWC4.5 exploits.
 - Sizes per experiment: 50 training pairs (100 lines), 24 test pairs
@@ -65,13 +65,35 @@ different random train/test chapter splits.
 - `asad_daryabadi/run_1/` contains the original published outputs of
   experiment 1, run 1, as released with the source code.
 
+The network-motif feature representation follows the approach of the 2013
+UNSW PhD thesis and the PLOS ONE 2019 article; see those references for the
+full feature-extraction methodology.
+
+## Provenance and acknowledgements
+
+Only the derived numeric feature vectors are distributed here — **the source
+translation texts are not included.** The features were computed from
+third-party resources, gratefully acknowledged:
+
+- **Translations** — obtained from the [Tanzil](https://tanzil.net) Qur'an
+  project. The seven translators are Muhammad Asad, Abdul Majid Daryabadi,
+  Abul Ala Maududi, Mohammed Marmaduke Pickthall, Ahmed Raza Khan,
+  Muhammad Sarwar, and Abdullah Yusuf Ali. 74 chapters were used (the final
+  six parts / *juz'* of the Qur'an).
+- **Preprocessing (lemmatization)** — the
+  [Natural Language Toolkit (NLTK)](https://www.nltk.org/).
+- **Motif counting (size 3 and 4)** — the
+  [Mfinder](https://www.weizmann.ac.il/mcb/UriAlon/download/network-motif-software)
+  network-motif detection tool.
+
 ## License and citation
 
 The datasets are licensed under **CC BY 4.0** (see [LICENSE](LICENSE)).
 If you use them, please cite the publications in the repository
-[README](../README.md#citing-this-work) — primarily the ACM TALLIP 2016
-article (DOI [10.1145/2898997](https://doi.org/10.1145/2898997)); for the
-network-motif features also consider the PLOS ONE 2019 article
-(DOI [10.1371/journal.pone.0211809](https://doi.org/10.1371/journal.pone.0211809))
-and the 2013 UNSW PhD thesis
-(DOI [10.26190/unsworks/16460](https://doi.org/10.26190/unsworks/16460)).
+[README](../README.md#citing-this-work). The network-motif translator
+features correspond to the 2013 UNSW PhD thesis
+(DOI [10.26190/unsworks/16460](https://doi.org/10.26190/unsworks/16460)) and
+the PLOS ONE 2019 article
+(DOI [10.1371/journal.pone.0211809](https://doi.org/10.1371/journal.pone.0211809));
+the PWC4.5 algorithm itself is described in the ACM TALLIP 2016 article
+(DOI [10.1145/2898997](https://doi.org/10.1145/2898997)).
