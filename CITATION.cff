@@ -4,10 +4,16 @@ title: "PWC4.5 - Pairwise Comparative Classification (PWCCP)"
 authors:
   - family-names: El-Fiqi
     given-names: Heba
+    affiliation: "UNSW Canberra"
+    orcid: "https://orcid.org/0000-0001-8146-0110"
   - family-names: Petraki
     given-names: Eleni
+    affiliation: "University of Canberra"
+    orcid: "https://orcid.org/0000-0002-1019-6970"
   - family-names: Abbass
     given-names: Hussein A.
+    affiliation: "UNSW Canberra"
+    orcid: "https://orcid.org/0000-0002-8837-0748"
 repository-code: "https://github.com/Hebaelfiqi/PWC4.5"
 url: "https://sites.google.com/site/pairwiseccp"
 version: "1.0.0"
