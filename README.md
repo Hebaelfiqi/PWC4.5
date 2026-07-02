@@ -4,7 +4,8 @@
 [![Release](https://img.shields.io/github/v/release/Hebaelfiqi/PWC4.5)](https://github.com/Hebaelfiqi/PWC4.5/releases)
 [![Code License: MIT](https://img.shields.io/badge/code%20license-MIT-blue.svg)](LICENSE)
 [![Data License: CC BY 4.0](https://img.shields.io/badge/data%20license-CC%20BY%204.0-lightgrey.svg)](data/LICENSE)
-[![DOI](https://img.shields.io/badge/DOI-10.1145%2F2898997-orange)](https://doi.org/10.1145/2898997)
+[![Paper DOI](https://img.shields.io/badge/paper-10.1145%2F2898997-orange)](https://doi.org/10.1145/2898997)
+[![Software DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21134664.svg)](https://doi.org/10.5281/zenodo.21134664)
 
 Code and datasets for **PWC4.5**, a decision tree algorithm for
 **Pair-Wise Comparative Classification Problems (PWCCP)**, extending C4.5 —
@@ -120,7 +121,11 @@ Start at [docs/README.md](docs/README.md). In reading order:
 
 ## Citing this work
 
-If you use this code or the datasets, please cite the following publications
+To cite the **software** itself, use the archived Zenodo record
+(concept DOI, always resolves to the latest version):
+[10.5281/zenodo.21134664](https://doi.org/10.5281/zenodo.21134664).
+
+To cite the **method and results**, please cite the following publications
 (chronological; the 2016 TALLIP article is the primary reference for the
 PWC4.5 algorithm):
 
