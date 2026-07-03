@@ -1,0 +1,24 @@
+pair                         PWC4.5  PairwiseSVM      RankNet   LambdaMART
+asad_daryabadi               98.31%       68.06%       98.31%       70.25%
+asad_maududi                 98.05%       68.89%       93.51%       54.21%
+asad_pickthall               94.74%       70.43%       98.13%       64.65%
+asad_raza                    84.44%       69.46%       88.28%       57.36%
+asad_sarwar                  93.80%       68.75%       94.47%       62.62%
+asad_yousifali               93.77%       72.04%       92.26%       64.67%
+daryabadi_maududi            83.28%       68.97%       86.61%       51.06%
+daryabadi_pickthall          59.19%       57.09%       60.96%       52.30%
+daryabadi_raza               81.48%       54.97%       77.21%       62.99%
+daryabadi_sarwar             78.93%       61.39%       80.39%       55.44%
+daryabadi_yousifali          91.61%       69.96%       88.59%       59.14%
+maududi_pickthall            78.55%       68.88%       81.74%       52.88%
+maududi_raza                 54.22%       58.34%       66.92%       62.51%
+maududi_sarwar               62.22%       61.41%       70.42%       56.75%
+maududi_yousifali            55.19%       49.53%       51.74%       49.61%
+pickthall_raza               79.66%       55.25%       78.80%       67.30%
+pickthall_sarwar             68.05%       51.71%       70.01%       55.70%
+pickthall_yousifali          91.55%       62.05%       91.41%       54.85%
+raza_sarwar                  59.83%       51.33%       60.01%       55.78%
+raza_yousifali               61.87%       51.26%       73.33%       58.62%
+sarwar_yousifali             74.85%       59.89%       79.94%       65.23%
+--------------------------------------------------------------------------
+AVERAGE                      78.27%       61.89%       80.14%       58.76%

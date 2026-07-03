@@ -17,3 +17,7 @@ data/**/*_pruned_out.csv
 data/**/*_unpruned_out.csv
 data/**/Pruned_*_decision_rules.txt
 data/**/Unpruned_*_decision_rules.txt
+__pycache__/
+*.pyc
+research/venv/
+*.arff
