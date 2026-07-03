@@ -28,14 +28,17 @@ class Node:
 
 class PWC45Py:
     def __init__(self, magnitude=False, mag_kind="std", min_leaf=5, max_depth=12,
-                 n_thresh=16, deadzone=False, value_split=False):
+                 n_thresh=16, deadzone=False, value_split=False,
+                 value_aggs=(0, 1, 2), prefer_rel=0.0):
         # value_split: also allow C4.5-style thresholds on a SYMMETRIC pair
-        # aggregate (min/max/mean of the two members' values), which keeps the
-        # pair together and is orientation-invariant. Combines absolute-value
-        # splitting (C4.5) with the pairwise relation.
+        # aggregate, which keeps the pair together and is orientation-invariant.
+        # value_aggs selects which aggregates are tried: 0=min, 1=max, 2=mean.
+        #   (0,)=min-only  (2,)=mean-only  (1,)=max-only  (0,1,2)=any (fit)
+        # prefer_rel: Occam margin — use a value/magnitude split only if it beats
+        #   the best relational split by this fraction (0 = no bias).
         self.value_split = value_split
-        self.prefer_rel = 0.10   # Occam margin: use a value/magnitude split only
-                                 # if it beats the best relational split by >10%
+        self.value_aggs = value_aggs
+        self.prefer_rel = prefer_rel
         self.magnitude = magnitude
         # mag_kind: 'rel'=(a-b)/(|a|+|b|) [old/flawed]; 'raw'=a-b;
         #           'std'=(a-b)/std_j; 'mad'=(a-b)/MAD_j; 'quantile'=q(a)-q(b)
@@ -137,8 +140,9 @@ class PWC45Py:
             for j in range(self.m):
                 if self.value_split:
                     a, b = self.A[idx, j], self.B[idx, j]
-                    aggs = {0: np.minimum(a, b), 1: np.maximum(a, b), 2: (a + b) / 2}
-                    for aid, g in aggs.items():
+                    allagg = {0: np.minimum(a, b), 1: np.maximum(a, b), 2: (a + b) / 2}
+                    for aid in self.value_aggs:
+                        g = allagg[aid]
                         order = np.unique(g)
                         if len(order) <= 1:
                             continue
