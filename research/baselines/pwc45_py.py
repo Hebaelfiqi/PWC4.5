@@ -287,3 +287,44 @@ class PWC45Py:
         y = np.asarray(split["y"], int)
         pred = np.array([self._predict_one(A[i], B[i], self.root) for i in range(len(y))])
         return float((pred == y).mean())
+
+
+class GatedPWC45:
+    """Gated PWC4.5: selects the split-family configuration by internal
+    cross-validation on the training data, then refits on all of it. The gate
+    resolves the diagnostic's central tension — enable value-splits only when
+    the data shows they generalise (absolute-signal datasets), else stay
+    relational (non-transitive / relational datasets)."""
+    CONFIGS = {
+        "relational": {},
+        "value":      dict(value_split=True, value_aggs=(1,), numeric_penalty=True),
+        "magnitude":  dict(magnitude=True, mag_kind="std", deadzone=True),
+    }
+
+    def __init__(self, min_leaf=10, inner_folds=3, seed=0):
+        self.min_leaf = min_leaf
+        self.inner_folds = inner_folds
+        self.seed = seed
+
+    def fit(self, split):
+        from sklearn.model_selection import StratifiedKFold
+        A = np.asarray(split["A"], float); B = np.asarray(split["B"], float)
+        y = np.asarray(split["y"], int)
+        best = ("relational", -1.0)
+        for name, cfg in self.CONFIGS.items():
+            accs = []
+            skf = StratifiedKFold(self.inner_folds, shuffle=True, random_state=self.seed)
+            for tr, va in skf.split(A, y):
+                m = PWC45Py(prune=True, min_leaf=self.min_leaf, **cfg).fit(
+                    {"A": A[tr], "B": B[tr], "y": y[tr]})
+                accs.append(m.accuracy({"A": A[va], "B": B[va], "y": y[va]}))
+            mu = float(np.mean(accs))
+            if mu > best[1]:
+                best = (name, mu)
+        self.chosen = best[0]
+        self.model = PWC45Py(prune=True, min_leaf=self.min_leaf,
+                             **self.CONFIGS[best[0]]).fit(split)
+        return self
+
+    def accuracy(self, split):
+        return self.model.accuracy(split)
