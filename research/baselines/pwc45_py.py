@@ -24,12 +24,23 @@ def _entropy(counts):
     return float(-(p * np.log2(p)).sum())
 
 class Node:
-    __slots__ = ("kind", "attr", "theta", "children", "pred", "dist")
+    __slots__ = ("kind", "attr", "theta", "agg", "children", "pred", "dist")
 
 class PWC45Py:
-    def __init__(self, magnitude=False, mag_kind="rel", min_leaf=5, max_depth=12, n_thresh=16):
+    def __init__(self, magnitude=False, mag_kind="std", min_leaf=5, max_depth=12,
+                 n_thresh=16, deadzone=False, value_split=False):
+        # value_split: also allow C4.5-style thresholds on a SYMMETRIC pair
+        # aggregate (min/max/mean of the two members' values), which keeps the
+        # pair together and is orientation-invariant. Combines absolute-value
+        # splitting (C4.5) with the pairwise relation.
+        self.value_split = value_split
+        self.prefer_rel = 0.10   # Occam margin: use a value/magnitude split only
+                                 # if it beats the best relational split by >10%
         self.magnitude = magnitude
-        self.mag_kind = mag_kind   # 'rel' = scale-invariant delta; 'raw' = a-b
+        # mag_kind: 'rel'=(a-b)/(|a|+|b|) [old/flawed]; 'raw'=a-b;
+        #           'std'=(a-b)/std_j; 'mad'=(a-b)/MAD_j; 'quantile'=q(a)-q(b)
+        self.mag_kind = mag_kind
+        self.deadzone = deadzone   # if True: symmetric 3-way {much-less,similar,much-greater}
         self.min_leaf = min_leaf
         self.max_depth = max_depth
         self.n_thresh = n_thresh
@@ -40,8 +51,31 @@ class PWC45Py:
         self.y = np.asarray(split["y"], int)
         self.K = int(self.y.max()) + 1
         self.m = self.A.shape[1]
+        # per-attribute scales / CDFs computed from TRAINING data only
+        d = self.A - self.B
+        self._std = d.std(axis=0) + EPS
+        self._mad = np.median(np.abs(d - np.median(d, axis=0)), axis=0) * 1.4826 + EPS
+        if self.mag_kind == "quantile":
+            vals = np.concatenate([self.A, self.B], axis=0)
+            self._sorted = [np.sort(vals[:, j]) for j in range(self.m)]
         self.root = self._build(np.arange(len(self.y)), 0)
         return self
+
+    def _mag(self, a, b, j):
+        """Scaled signed difference for attribute j (array or scalar)."""
+        k = self.mag_kind
+        if k == "raw":
+            return a - b
+        if k == "rel":
+            return (a - b) / (np.abs(a) + np.abs(b) + EPS)
+        if k == "std":
+            return (a - b) / self._std[j]
+        if k == "mad":
+            return (a - b) / self._mad[j]
+        if k == "quantile":
+            s = self._sorted[j]; n = len(s)
+            return (np.searchsorted(s, a) - np.searchsorted(s, b)) / n
+        raise ValueError(k)
 
     def _dist(self, idx):
         return np.bincount(self.y[idx], minlength=self.K).astype(float)
@@ -54,10 +88,7 @@ class PWC45Py:
         return r
 
     def _delta(self, idx, j):
-        a, b = self.A[idx, j], self.B[idx, j]
-        if self.mag_kind == "raw":
-            return a - b
-        return (a - b) / (np.abs(a) + np.abs(b) + EPS)
+        return self._mag(self.A[idx, j], self.B[idx, j], j)
 
     def _gain_ratio(self, parent_dist, parts):
         total = parent_dist.sum()
@@ -85,41 +116,96 @@ class PWC45Py:
         if len(idx) < self.min_leaf or (dist > 0).sum() <= 1 or depth >= self.max_depth:
             node.kind = "leaf"; node.pred = int(dist.argmax()); return node
 
-        best = (0.0, None)   # (gain_ratio, spec)
+        yv = self.y[idx]
+        # Pass 1 — relational (sign) splits; the default and the Occam reference
+        best = (0.0, None)
+        best_rel = 0.0
         for j in range(self.m):
-            # sign 3-way
             r = self._sign_rel(idx, j)
-            parts = [np.bincount(self.y[idx][r == k], minlength=self.K).astype(float) for k in range(3)]
+            parts = [np.bincount(yv[r == k], minlength=self.K).astype(float) for k in range(3)]
             gr = self._gain_ratio(dist, parts)
+            if gr > best_rel:
+                best_rel = gr
             if gr > best[0]:
                 best = (gr, ("sign", j, None))
-            # magnitude binary on delta
-            if self.magnitude:
-                delta = self._delta(idx, j)
-                order = np.unique(delta)
-                if len(order) > 1:
-                    cand = order[:-1] + np.diff(order) / 2
-                    if len(cand) > self.n_thresh:
-                        cand = np.quantile(cand, np.linspace(0, 1, self.n_thresh))
-                    yv = self.y[idx]
-                    for theta in cand:
-                        left = delta <= theta
-                        parts = [np.bincount(yv[left], minlength=self.K).astype(float),
-                                 np.bincount(yv[~left], minlength=self.K).astype(float)]
-                        gr = self._gain_ratio(dist, parts)
-                        if gr > best[0]:
-                            best = (gr, ("mag", j, float(theta)))
+
+        # Pass 2 — value/magnitude splits, used ONLY if they beat the best
+        # relational split by the Occam margin (bias toward the simpler,
+        # scale-invariant relation; avoids overfitting relational datasets)
+        if self.value_split or self.magnitude:
+            floor = best_rel * (1.0 + self.prefer_rel)
+            for j in range(self.m):
+                if self.value_split:
+                    a, b = self.A[idx, j], self.B[idx, j]
+                    aggs = {0: np.minimum(a, b), 1: np.maximum(a, b), 2: (a + b) / 2}
+                    for aid, g in aggs.items():
+                        order = np.unique(g)
+                        if len(order) <= 1:
+                            continue
+                        cand = order[:-1] + np.diff(order) / 2
+                        if len(cand) > self.n_thresh:
+                            cand = np.quantile(cand, np.linspace(0, 1, self.n_thresh))
+                        for theta in cand:
+                            left = g <= theta
+                            parts = [np.bincount(yv[left], minlength=self.K).astype(float),
+                                     np.bincount(yv[~left], minlength=self.K).astype(float)]
+                            gr = self._gain_ratio(dist, parts)
+                            if gr > best[0] and gr > floor:
+                                best = (gr, ("val", j, aid, float(theta)))
+                if self.magnitude:
+                    delta = self._delta(idx, j)
+                    if not self.deadzone:
+                        order = np.unique(delta)
+                        if len(order) > 1:
+                            cand = order[:-1] + np.diff(order) / 2
+                            if len(cand) > self.n_thresh:
+                                cand = np.quantile(cand, np.linspace(0, 1, self.n_thresh))
+                            for theta in cand:
+                                left = delta <= theta
+                                parts = [np.bincount(yv[left], minlength=self.K).astype(float),
+                                         np.bincount(yv[~left], minlength=self.K).astype(float)]
+                                gr = self._gain_ratio(dist, parts)
+                                if gr > best[0] and gr > floor:
+                                    best = (gr, ("mag", j, float(theta)))
+                    else:
+                        ad = np.abs(delta)
+                        pos = np.unique(ad[ad > 0])
+                        if len(pos) > 1:
+                            cand = np.quantile(pos, np.linspace(0.1, 0.9, self.n_thresh))
+                            for theta in np.unique(cand):
+                                r = np.where(delta < -theta, 0, np.where(delta > theta, 2, 1))
+                                parts = [np.bincount(yv[r == k], minlength=self.K).astype(float)
+                                         for k in range(3)]
+                                gr = self._gain_ratio(dist, parts)
+                                if gr > best[0] and gr > floor:
+                                    best = (gr, ("mag3", j, float(theta)))
 
         if best[1] is None:
             node.kind = "leaf"; node.pred = int(dist.argmax()); return node
 
-        kind, j, theta = best[1]
-        node.kind = kind; node.attr = j; node.theta = theta
+        spec = best[1]
+        kind = spec[0]; j = spec[1]
+        node.kind = kind; node.attr = j
+        if kind == "val":
+            node.agg = spec[2]; node.theta = spec[3]
+            a, b = self.A[idx, j], self.B[idx, j]
+            g = (np.minimum(a, b) if node.agg == 0 else
+                 np.maximum(a, b) if node.agg == 1 else (a + b) / 2)
+            left = g <= node.theta
+            node.children = [self._build(idx[left], depth + 1) if left.any() else self._leaf(dist),
+                             self._build(idx[~left], depth + 1) if (~left).any() else self._leaf(dist)]
+            return node
+        theta = spec[2]; node.theta = theta
         if kind == "sign":
             r = self._sign_rel(idx, j)
             node.children = [self._build(idx[r == k], depth + 1) if (r == k).any()
                              else self._leaf(dist) for k in range(3)]
-        else:
+        elif kind == "mag3":
+            delta = self._delta(idx, j)
+            r = np.where(delta < -theta, 0, np.where(delta > theta, 2, 1))
+            node.children = [self._build(idx[r == k], depth + 1) if (r == k).any()
+                             else self._leaf(dist) for k in range(3)]
+        else:                                          # 'mag' binary
             delta = self._delta(idx, j)
             left = delta <= theta
             node.children = [self._build(idx[left], depth + 1) if left.any() else self._leaf(dist),
@@ -135,9 +221,16 @@ class PWC45Py:
             if node.kind == "sign":
                 d = a[j] - b[j]; k = 0 if d < 0 else (2 if d > 0 else 1)
                 node = node.children[k]
+            elif node.kind == "val":
+                g = (min(a[j], b[j]) if node.agg == 0 else
+                     max(a[j], b[j]) if node.agg == 1 else (a[j] + b[j]) / 2)
+                node = node.children[0] if g <= node.theta else node.children[1]
+            elif node.kind == "mag3":
+                delta = self._mag(a[j], b[j], j)
+                k = 0 if delta < -node.theta else (2 if delta > node.theta else 1)
+                node = node.children[k]
             else:
-                delta = (a[j] - b[j]) if self.mag_kind == "raw" else \
-                        (a[j] - b[j]) / (abs(a[j]) + abs(b[j]) + EPS)
+                delta = self._mag(a[j], b[j], j)
                 node = node.children[0] if delta <= node.theta else node.children[1]
         return node.pred
 
