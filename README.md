@@ -68,7 +68,8 @@ scripts/run_translators.sh asad_daryabadi 1
 ```
 
 Full manual and the exact published commands:
-[docs/03-using-pwc45.md](docs/03-using-pwc45.md).
+[docs/03-using-pwc45.md](docs/03-using-pwc45.md). The published results have
+been independently reproduced on Java 17 — see [VERIFICATION.md](VERIFICATION.md).
 
 ## What's in the repository
 
