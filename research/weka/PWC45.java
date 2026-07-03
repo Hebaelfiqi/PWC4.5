@@ -1,46 +1,57 @@
 package weka.classifiers.trees;
 
 import weka.classifiers.AbstractClassifier;
+import weka.classifiers.trees.j48.Stats;
 import weka.core.Capabilities;
 import weka.core.Capabilities.Capability;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.Option;
+import weka.core.TechnicalInformation;
+import weka.core.TechnicalInformation.Field;
+import weka.core.TechnicalInformation.Type;
+import weka.core.TechnicalInformationHandler;
 import weka.core.Utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Vector;
 
 /**
  * PWC45 — a WEKA classifier for Pairwise Comparative Classification Problems
  * (PWCCP), extending the idea of C4.5 to split on the <i>relationship</i>
  * between the two members of a pair rather than on a value threshold.
  *
- * <p><b>Input representation (pair-as-single-instance).</b> Each instance is one
- * pair: the first {@code n} numeric attributes are p1's features, the next
- * {@code n} are p2's features (same order), and the nominal class is the class
- * of p1 (p2 is the other class). This makes the pairing invisible to WEKA —
- * cross-validation folds can never split a pair.
+ * <p><b>Input representation (pair-as-single-instance).</b> Each instance is
+ * one pair: the first {@code n} attributes are p1's features, the next
+ * {@code n} are p2's features (same order and types), and the nominal class
+ * is the class of p1 (p2 is the other class). This makes the pairing
+ * invisible to WEKA — cross-validation folds can never split a pair.
  *
- * <p>For each numeric feature i, the within-pair relation
- * R(V_i(p1), {V_i(p1),V_i(p2)}) is <i>min</i> if p1&lt;p2, <i>max</i> if
- * p1&gt;p2, else <i>eq</i>. For each nominal feature the relation is
- * <i>eq</i> / <i>neq</i> (values equal / not equal). The tree splits on the
- * relation that maximises the C4.5 gain ratio.
+ * <p>For each numeric feature the within-pair relation
+ * R(V(p1), {V(p1),V(p2)}) is <i>min</i> / <i>eq</i> / <i>max</i>; for each
+ * nominal feature it is <i>eq</i> / <i>neq</i>. The tree splits on the
+ * relation that maximises the C4.5 gain ratio, and is pruned with C4.5-style
+ * pessimistic (confidence-based) subtree replacement.
  *
- * <p><b>Status:</b> functional clean-room implementation of the relational-split
- * core (unpruned; C4.5-style gain-ratio selection). It is not yet a line-for-line
- * port of the reference {@code PWC45.java} (no error-based pruning, single
- * relation family). Sufficient for use in the WEKA Explorer/Experimenter and for
- * the benchmark comparisons; see research/PLAN.md.
+ * Options: -U (unpruned), -C confidence (default 0.25), -M min instances
+ * per node (default 2), -depth max depth (0 = unlimited).
  */
-public class PWC45 extends AbstractClassifier {
+public class PWC45 extends AbstractClassifier
+    implements TechnicalInformationHandler {
 
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   /** Minimum instances at a node to consider splitting. */
   protected int m_MinInstances = 2;
   /** Maximum tree depth (0 = unlimited). */
   protected int m_MaxDepth = 0;
+  /** Use unpruned tree. */
+  protected boolean m_Unpruned = false;
+  /** Confidence factor for pessimistic pruning (as in C4.5/J48). */
+  protected float m_CF = 0.25f;
 
   protected Node m_Root;
   protected int m_NumClasses;
@@ -49,10 +60,36 @@ public class PWC45 extends AbstractClassifier {
   protected String[] m_AttrNames; // per pair-attribute, for readable output
 
   /** A tree node: leaf (m_Split < 0) or internal split on feature m_Split. */
-  protected static class Node {
+  protected static class Node implements java.io.Serializable {
+    private static final long serialVersionUID = 2L;
     int m_Split = -1;             // feature index [0, n) or -1 for leaf
     Node m_Min, m_Eq, m_Max;      // children by relation
-    double[] m_Dist;              // class distribution (leaf or fallback)
+    double[] m_Dist;              // training class distribution
+    boolean m_Empty = false;      // empty-partition fallback leaf
+  }
+
+  public String globalInfo() {
+    return "PWC4.5: a decision tree for Pairwise Comparative Classification "
+        + "Problems (PWCCP), extending C4.5 to split on the relationship "
+        + "between the two members of a pair (numeric: min/eq/max; nominal: "
+        + "eq/neq) instead of a value threshold. Expects pair-as-single-"
+        + "instance data: p1's n features, then p2's n features (same order "
+        + "and types), then the class of p1.\n\nFor more information see:\n\n"
+        + getTechnicalInformation().toString();
+  }
+
+  @Override
+  public TechnicalInformation getTechnicalInformation() {
+    TechnicalInformation result = new TechnicalInformation(Type.ARTICLE);
+    result.setValue(Field.AUTHOR, "Heba El-Fiqi and Eleni Petraki and Hussein A. Abbass");
+    result.setValue(Field.TITLE, "Pairwise Comparative Classification for Translator Stylometric Analysis");
+    result.setValue(Field.JOURNAL, "ACM Transactions on Asian and Low-Resource Language Information Processing");
+    result.setValue(Field.YEAR, "2016");
+    result.setValue(Field.VOLUME, "16");
+    result.setValue(Field.NUMBER, "1");
+    result.setValue(Field.PAGES, "Article 2");
+    result.setValue(Field.URL, "https://doi.org/10.1145/2898997");
+    return result;
   }
 
   @Override
@@ -67,6 +104,64 @@ public class PWC45 extends AbstractClassifier {
     return result;
   }
 
+  // ---------------------------------------------------------------- options
+
+  @Override
+  public Enumeration<Option> listOptions() {
+    Vector<Option> v = new Vector<Option>(4);
+    v.addElement(new Option("\tUse unpruned tree.", "U", 0, "-U"));
+    v.addElement(new Option("\tConfidence factor for pruning (default 0.25).",
+        "C", 1, "-C <confidence>"));
+    v.addElement(new Option("\tMinimum instances to attempt a split (default 2).",
+        "M", 1, "-M <min instances>"));
+    v.addElement(new Option("\tMaximum tree depth, 0 = unlimited (default 0).",
+        "depth", 1, "-depth <max depth>"));
+    Enumeration<Option> sup = super.listOptions();
+    while (sup.hasMoreElements()) v.addElement(sup.nextElement());
+    return v.elements();
+  }
+
+  @Override
+  public void setOptions(String[] options) throws Exception {
+    m_Unpruned = Utils.getFlag('U', options);
+    String s = Utils.getOption('C', options);
+    m_CF = s.length() > 0 ? Float.parseFloat(s) : 0.25f;
+    s = Utils.getOption('M', options);
+    m_MinInstances = s.length() > 0 ? Integer.parseInt(s) : 2;
+    s = Utils.getOption("depth", options);
+    m_MaxDepth = s.length() > 0 ? Integer.parseInt(s) : 0;
+    super.setOptions(options);
+    Utils.checkForRemainingOptions(options);
+  }
+
+  @Override
+  public String[] getOptions() {
+    List<String> opts = new ArrayList<String>();
+    if (m_Unpruned) opts.add("-U");
+    opts.add("-C"); opts.add("" + m_CF);
+    opts.add("-M"); opts.add("" + m_MinInstances);
+    opts.add("-depth"); opts.add("" + m_MaxDepth);
+    Collections.addAll(opts, super.getOptions());
+    return opts.toArray(new String[0]);
+  }
+
+  public void setUnpruned(boolean v) { m_Unpruned = v; }
+  public boolean getUnpruned() { return m_Unpruned; }
+  public String unprunedTipText() { return "Whether to skip pessimistic pruning."; }
+  public void setConfidenceFactor(float v) { m_CF = v; }
+  public float getConfidenceFactor() { return m_CF; }
+  public String confidenceFactorTipText() {
+    return "Confidence factor for pessimistic pruning (smaller = more pruning), as in C4.5/J48.";
+  }
+  public void setMinInstances(int v) { m_MinInstances = v; }
+  public int getMinInstances() { return m_MinInstances; }
+  public String minInstancesTipText() { return "Minimum instances at a node to attempt a split."; }
+  public void setMaxDepth(int v) { m_MaxDepth = v; }
+  public int getMaxDepth() { return m_MaxDepth; }
+  public String maxDepthTipText() { return "Maximum tree depth (0 = unlimited)."; }
+
+  // ------------------------------------------------------------------ build
+
   @Override
   public void buildClassifier(Instances data) throws Exception {
     getCapabilities().testWithFail(data);
@@ -77,7 +172,7 @@ public class PWC45 extends AbstractClassifier {
     if (nAttr % 2 != 0) {
       throw new Exception("PWC45 expects an even number of predictor "
           + "attributes (p1's n features followed by p2's n features); got "
-          + nAttr + ". Use research/tools/make_pair_arff.py to build the input.");
+          + nAttr + ". Use the pair-as-instance converters to build the input.");
     }
     m_NumPairAttrs = nAttr / 2;
     m_NumClasses = data.numClasses();
@@ -100,7 +195,8 @@ public class PWC45 extends AbstractClassifier {
 
     List<Instance> rows = new ArrayList<Instance>();
     for (int i = 0; i < data.numInstances(); i++) rows.add(data.instance(i));
-    m_Root = build(rows, data, 0);
+    m_Root = build(rows, 0);
+    if (!m_Unpruned) prune(m_Root);
   }
 
   /**
@@ -127,7 +223,7 @@ public class PWC45 extends AbstractClassifier {
     return d;
   }
 
-  protected Node build(List<Instance> rows, Instances header, int depth) {
+  protected Node build(List<Instance> rows, int depth) {
     Node node = new Node();
     node.m_Dist = classDist(rows);
 
@@ -175,16 +271,52 @@ public class PWC45 extends AbstractClassifier {
       (r == 0 ? mn : r == 1 ? eq : mx).add(in);
     }
     node.m_Split = best;
-    node.m_Min = mn.isEmpty() ? leaf(node.m_Dist) : build(mn, header, depth + 1);
-    node.m_Eq  = eq.isEmpty() ? leaf(node.m_Dist) : build(eq, header, depth + 1);
-    node.m_Max = mx.isEmpty() ? leaf(node.m_Dist) : build(mx, header, depth + 1);
+    node.m_Min = mn.isEmpty() ? emptyLeaf(node.m_Dist) : build(mn, depth + 1);
+    node.m_Eq  = eq.isEmpty() ? emptyLeaf(node.m_Dist) : build(eq, depth + 1);
+    node.m_Max = mx.isEmpty() ? emptyLeaf(node.m_Dist) : build(mx, depth + 1);
     return node;
   }
 
-  protected Node leaf(double[] dist) {
+  /** Fallback leaf for an empty relation branch: predicts the parent's
+   *  majority but carries no training mass (so pruning cannot double-count). */
+  protected Node emptyLeaf(double[] parentDist) {
     Node n = new Node();
-    n.m_Dist = dist.clone();
+    n.m_Dist = parentDist.clone();
+    n.m_Empty = true;
     return n;
+  }
+
+  // ----------------------------------------------------------------- prune
+
+  /** Pessimistic error estimate for this node treated as a leaf (C4.5-style,
+   *  via WEKA's own Stats.addErrs for exact parity with J48). */
+  protected double leafErrorEstimate(Node n) {
+    if (n.m_Empty) return 0;
+    double N = Utils.sum(n.m_Dist);
+    if (N <= 0) return 0;
+    double e = N - n.m_Dist[Utils.maxIndex(n.m_Dist)];
+    return e + Stats.addErrs(N, e, m_CF);
+  }
+
+  /** Bottom-up subtree replacement; returns the estimated error of the
+   *  (possibly pruned) subtree rooted at n. */
+  protected double prune(Node n) {
+    if (n.m_Split < 0) return leafErrorEstimate(n);
+    double subtree = 0;
+    for (Node k : children(n)) subtree += prune(k);
+    double asLeaf = leafErrorEstimate(n);
+    if (asLeaf <= subtree + 0.1) {
+      n.m_Split = -1;
+      n.m_Min = n.m_Eq = n.m_Max = null;
+      return asLeaf;
+    }
+    return subtree;
+  }
+
+  protected Node[] children(Node n) {
+    return m_Nominal[n.m_Split]
+        ? new Node[]{n.m_Min, n.m_Eq}
+        : new Node[]{n.m_Min, n.m_Eq, n.m_Max};
   }
 
   protected boolean isPure(double[] dist) {
@@ -203,25 +335,50 @@ public class PWC45 extends AbstractClassifier {
     return e;
   }
 
+  // --------------------------------------------------------------- predict
+
   @Override
   public double[] distributionForInstance(Instance inst) {
     Node n = m_Root;
     while (n.m_Split >= 0) {
       int r = relation(inst, n.m_Split);
       n = (r == 0 ? n.m_Min : r == 1 ? n.m_Eq : n.m_Max);
+      if (n == null) break;                     // nominal node, impossible r=2
     }
-    double[] d = n.m_Dist.clone();
+    double[] d = (n != null ? n.m_Dist.clone() : m_Root.m_Dist.clone());
     double s = Utils.sum(d);
     if (s > 0) Utils.normalize(d, s);
     else for (int i = 0; i < d.length; i++) d[i] = 1.0 / d.length;
     return d;
   }
 
+  // ---------------------------------------------------------------- output
+
+  public int numLeaves(Node n) {
+    if (n == null) n = m_Root;
+    if (n.m_Split < 0) return 1;
+    int c = 0;
+    for (Node k : children(n)) c += numLeaves(k);
+    return c;
+  }
+
+  public int treeSize(Node n) {
+    if (n == null) n = m_Root;
+    if (n.m_Split < 0) return 1;
+    int c = 1;
+    for (Node k : children(n)) c += treeSize(k);
+    return c;
+  }
+
   @Override
   public String toString() {
     if (m_Root == null) return "PWC45: no model built yet.";
-    StringBuilder sb = new StringBuilder("PWC45 relational decision tree\n\n");
+    StringBuilder sb = new StringBuilder("PWC45 relational decision tree ")
+        .append(m_Unpruned ? "(unpruned)" : "(pruned, CF=" + m_CF + ")")
+        .append("\n");
     print(m_Root, sb, "");
+    sb.append("\nNumber of leaves: ").append(numLeaves(null));
+    sb.append("\nSize of the tree: ").append(treeSize(null)).append("\n");
     return sb.toString();
   }
 
@@ -232,7 +389,7 @@ public class PWC45 extends AbstractClassifier {
     }
     boolean nom = m_Nominal[n.m_Split];
     String[] rel = nom ? new String[]{"neq", "eq"} : new String[]{"min", "eq", "max"};
-    Node[] kids = nom ? new Node[]{n.m_Min, n.m_Eq} : new Node[]{n.m_Min, n.m_Eq, n.m_Max};
+    Node[] kids = children(n);
     String name = (m_AttrNames != null && m_AttrNames[n.m_Split] != null)
         ? m_AttrNames[n.m_Split] : ("f" + n.m_Split);
     sb.append("\n");
@@ -241,11 +398,6 @@ public class PWC45 extends AbstractClassifier {
       print(kids[i], sb, indent + "|  ");
     }
   }
-
-  public void setMinInstances(int v) { m_MinInstances = v; }
-  public int getMinInstances() { return m_MinInstances; }
-  public void setMaxDepth(int v) { m_MaxDepth = v; }
-  public int getMaxDepth() { return m_MaxDepth; }
 
   public static void main(String[] args) {
     runClassifier(new PWC45(), args);

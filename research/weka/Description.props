@@ -1,0 +1,22 @@
+# WEKA package metadata for the pwc45 package
+PackageName=pwc45
+Version=1.1.0
+Date=2026-07-04
+Title=PWC4.5 - Pairwise Comparative Classification decision tree
+Category=Classification
+Author=Heba El-Fiqi, Eleni Petraki, Hussein A. Abbass
+Maintainer=Heba El-Fiqi <MAINTAINER_EMAIL_TODO>
+License=MIT
+Description=PWC4.5 is a decision tree algorithm for Pairwise Comparative \
+Classification Problems (PWCCP), extending C4.5 to split on the relationship \
+between the two members of a pair (numeric relations min/eq/max; nominal \
+relations eq/neq) rather than on a value threshold. Input uses the \
+pair-as-single-instance representation: p1's n features, then p2's n \
+features (same order and types), then the class of p1. Includes C4.5-style \
+pessimistic pruning. If you use this package, please cite: H. El-Fiqi, \
+E. Petraki, H. A. Abbass, "Pairwise comparative classification for \
+translator stylometric analysis", ACM TALLIP 16(1), Article 2, 2016, \
+doi:10.1145/2898997.
+PackageURL=https://github.com/Hebaelfiqi/PWC4.5/releases
+URL=https://github.com/Hebaelfiqi/PWC4.5
+Depends=weka (>=3.8.0)
