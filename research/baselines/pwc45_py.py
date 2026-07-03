@@ -29,7 +29,8 @@ class Node:
 class PWC45Py:
     def __init__(self, magnitude=False, mag_kind="std", min_leaf=5, max_depth=12,
                  n_thresh=16, deadzone=False, value_split=False,
-                 value_aggs=(0, 1, 2), prefer_rel=0.0, numeric_penalty=False):
+                 value_aggs=(0, 1, 2), prefer_rel=0.0, numeric_penalty=False,
+                 prune=False, cf=0.25):
         # value_split: also allow C4.5-style thresholds on a SYMMETRIC pair
         # aggregate, which keeps the pair together and is orientation-invariant.
         # value_aggs selects which aggregates are tried: 0=min, 1=max, 2=mean.
@@ -40,14 +41,48 @@ class PWC45Py:
         self.value_aggs = value_aggs
         self.prefer_rel = prefer_rel
         self.numeric_penalty = numeric_penalty  # C4.5-style log2(#thresholds)/N
+        self.prune = prune                       # C4.5 pessimistic error pruning
+        self.z = 0.6745 if abs(cf - 0.25) < 1e-9 else self._z_for_cf(cf)
         self.magnitude = magnitude
-        # mag_kind: 'rel'=(a-b)/(|a|+|b|) [old/flawed]; 'raw'=a-b;
-        #           'std'=(a-b)/std_j; 'mad'=(a-b)/MAD_j; 'quantile'=q(a)-q(b)
-        self.mag_kind = mag_kind
-        self.deadzone = deadzone   # if True: symmetric 3-way {much-less,similar,much-greater}
+        self.mag_kind = mag_kind    # 'rel','raw','std','mad','quantile'
+        self.deadzone = deadzone    # symmetric 3-way {much-less,similar,much-greater}
         self.min_leaf = min_leaf
         self.max_depth = max_depth
         self.n_thresh = n_thresh
+
+    @staticmethod
+    def _z_for_cf(cf):
+        from math import erf, sqrt
+        lo, hi = 0.0, 5.0                        # invert standard normal CDF at 1-cf
+        for _ in range(60):
+            mid = (lo + hi) / 2
+            if 0.5 * (1 + erf(mid / sqrt(2))) < 1 - cf:
+                lo = mid
+            else:
+                hi = mid
+        return (lo + hi) / 2
+
+    def _pess_err(self, dist):
+        """C4.5 pessimistic error count for a node (Wilson upper bound)."""
+        N = float(dist.sum())
+        if N <= 0:
+            return 0.0
+        E = N - float(dist.max())
+        f = E / N
+        z = self.z
+        upper = (f + z * z / (2 * N) +
+                 z * np.sqrt(max(f / N - f * f / N + z * z / (4 * N * N), 0.0))) / (1 + z * z / N)
+        return upper * N
+
+    def _prune_tree(self, node):
+        if node.kind == "leaf":
+            return self._pess_err(node.dist)
+        subtree = sum(self._prune_tree(ch) for ch in node.children)
+        as_leaf = self._pess_err(node.dist)
+        if as_leaf <= subtree:
+            node.kind = "leaf"; node.pred = int(node.dist.argmax()); node.children = None
+            return as_leaf
+        return subtree
 
     def fit(self, split):
         self.A = np.asarray(split["A"], float)
@@ -63,6 +98,8 @@ class PWC45Py:
             vals = np.concatenate([self.A, self.B], axis=0)
             self._sorted = [np.sort(vals[:, j]) for j in range(self.m)]
         self.root = self._build(np.arange(len(self.y)), 0)
+        if self.prune:
+            self._prune_tree(self.root)
         return self
 
     def _mag(self, a, b, j):
@@ -220,7 +257,11 @@ class PWC45Py:
         return node
 
     def _leaf(self, dist):
-        n = Node(); n.kind = "leaf"; n.pred = int(dist.argmax()); n.dist = dist; return n
+        # empty relation/value branch: predict the parent majority, but carry
+        # ZERO training mass so it contributes no pessimistic error when pruning
+        n = Node(); n.kind = "leaf"; n.pred = int(dist.argmax())
+        n.dist = np.zeros_like(dist)
+        return n
 
     def _predict_one(self, a, b, node):
         while node.kind != "leaf":
