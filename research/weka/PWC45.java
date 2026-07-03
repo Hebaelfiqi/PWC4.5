@@ -21,10 +21,11 @@ import java.util.List;
  * of p1 (p2 is the other class). This makes the pairing invisible to WEKA —
  * cross-validation folds can never split a pair.
  *
- * <p>For each feature i, the within-pair relation
+ * <p>For each numeric feature i, the within-pair relation
  * R(V_i(p1), {V_i(p1),V_i(p2)}) is <i>min</i> if p1&lt;p2, <i>max</i> if
- * p1&gt;p2, else <i>eq</i>. The tree splits on the relation that maximises the
- * C4.5 gain ratio.
+ * p1&gt;p2, else <i>eq</i>. For each nominal feature the relation is
+ * <i>eq</i> / <i>neq</i> (values equal / not equal). The tree splits on the
+ * relation that maximises the C4.5 gain ratio.
  *
  * <p><b>Status:</b> functional clean-room implementation of the relational-split
  * core (unpruned; C4.5-style gain-ratio selection). It is not yet a line-for-line
@@ -44,6 +45,8 @@ public class PWC45 extends AbstractClassifier {
   protected Node m_Root;
   protected int m_NumClasses;
   protected int m_NumPairAttrs;   // n = (numAttributes-1)/2
+  protected boolean[] m_Nominal;  // per pair-attribute: nominal relation?
+  protected String[] m_AttrNames; // per pair-attribute, for readable output
 
   /** A tree node: leaf (m_Split < 0) or internal split on feature m_Split. */
   protected static class Node {
@@ -57,6 +60,7 @@ public class PWC45 extends AbstractClassifier {
     Capabilities result = super.getCapabilities();
     result.disableAll();
     result.enable(Capability.NUMERIC_ATTRIBUTES);
+    result.enable(Capability.NOMINAL_ATTRIBUTES);
     result.enable(Capability.NOMINAL_CLASS);
     result.enable(Capability.MISSING_CLASS_VALUES);
     result.setMinimumNumberInstances(2);
@@ -78,13 +82,38 @@ public class PWC45 extends AbstractClassifier {
     m_NumPairAttrs = nAttr / 2;
     m_NumClasses = data.numClasses();
 
+    m_Nominal = new boolean[m_NumPairAttrs];
+    m_AttrNames = new String[m_NumPairAttrs];
+    for (int f = 0; f < m_NumPairAttrs; f++) {
+      boolean n1 = data.attribute(f).isNominal();
+      boolean n2 = data.attribute(f + m_NumPairAttrs).isNominal();
+      if (n1 != n2) {
+        throw new Exception("Attribute type mismatch between pair sides at "
+            + data.attribute(f).name() + " / "
+            + data.attribute(f + m_NumPairAttrs).name()
+            + ": p1 and p2 must carry the same feature types in the same order.");
+      }
+      m_Nominal[f] = n1;
+      String name = data.attribute(f).name();
+      m_AttrNames[f] = name.startsWith("p1_") ? name.substring(3) : name;
+    }
+
     List<Instance> rows = new ArrayList<Instance>();
     for (int i = 0; i < data.numInstances(); i++) rows.add(data.instance(i));
     m_Root = build(rows, data, 0);
   }
 
-  /** Relation of feature f for instance inst: 0=min (p1<p2), 1=eq, 2=max. */
+  /**
+   * Relation of feature f for instance inst.
+   * Numeric: 0=min (p1&lt;p2), 1=eq, 2=max.
+   * Nominal: 0=neq (values differ), 1=eq (string values equal); 2 unused.
+   */
   protected int relation(Instance inst, int f) {
+    if (m_Nominal[f]) {
+      String a = inst.stringValue(f);
+      String b = inst.stringValue(f + m_NumPairAttrs);
+      return a.equals(b) ? 1 : 0;
+    }
     double a = inst.value(f);
     double b = inst.value(f + m_NumPairAttrs);
     if (a < b) return 0;
@@ -201,12 +230,14 @@ public class PWC45 extends AbstractClassifier {
       sb.append(" : class ").append(Utils.maxIndex(n.m_Dist)).append("\n");
       return;
     }
-    String[] rel = {"min", "eq", "max"};
-    Node[] kids = {n.m_Min, n.m_Eq, n.m_Max};
+    boolean nom = m_Nominal[n.m_Split];
+    String[] rel = nom ? new String[]{"neq", "eq"} : new String[]{"min", "eq", "max"};
+    Node[] kids = nom ? new Node[]{n.m_Min, n.m_Eq} : new Node[]{n.m_Min, n.m_Eq, n.m_Max};
+    String name = (m_AttrNames != null && m_AttrNames[n.m_Split] != null)
+        ? m_AttrNames[n.m_Split] : ("f" + n.m_Split);
     sb.append("\n");
-    for (int i = 0; i < 3; i++) {
-      sb.append(indent).append("R(f").append(n.m_Split).append(") = ")
-        .append(rel[i]);
+    for (int i = 0; i < kids.length; i++) {
+      sb.append(indent).append("R(").append(name).append(") = ").append(rel[i]);
       print(kids[i], sb, indent + "|  ");
     }
   }
