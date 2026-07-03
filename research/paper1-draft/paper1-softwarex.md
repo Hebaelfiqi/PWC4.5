@@ -37,10 +37,13 @@ relations (numeric: minimum / equal / maximum; nominal: equal / not-equal).
 The software packages the method (El-Fiqi et al., 2016) as a first-class WEKA
 classifier through a *pair-as-single-instance* representation that makes pairs
 transparent to cross-validation and the WEKA Experimenter, and extends it to
-nominal attributes. We demonstrate utility across five domains — translator
-stylometry, matched case–control epidemiology, disease progression, consumer
-preference, and synthetic benchmarks — and, crucially, characterise *when*
-relational splits help, giving practitioners an evidence-based decision rule.
+nominal attributes. We demonstrate utility across real domains as varied as
+game AI (Pokémon battles), forensic linguistics (translator stylometry),
+epidemiology (matched case–control), and behavioural ecology (animal contests),
+and — crucially — characterise *when* relational splits help versus when
+absolute, magnitude, or additive signals favour other methods, giving
+practitioners an evidence-based decision rule. On real Pokémon data a three-leaf
+relational tree matches C4.5's accuracy while C4.5 needs 370 leaves.
 
 ## 1. Motivation and significance
 
@@ -111,45 +114,65 @@ difference-vector converter for the Gradient-Based Transformation baseline
 
 ## 3. Illustrative examples
 
-We evaluate on five domains (Table 1); the point is not a leaderboard but a
-*characterisation of when relational splits help*. All numbers are pair
-accuracy; applied datasets use 10-fold cross-validation with group-disjoint
-folds (stratum / subject / user), on WEKA 3.8.6 and JDK 17.
+We evaluate across several domains (Table 1); the point is not a leaderboard
+but a *characterisation of when relational splits help*. All numbers are pair
+accuracy under 10-fold cross-validation (group-disjoint folds where a grouping
+exists), plus a per-experiment protocol for the translator corpus, on WEKA
+3.8.6 and JDK 17. Baselines: J48 (C4.5), the Gradient-Based Transformation
+(difference-vector) tree GBT+J48 [1], and — for the wins over ranking methods —
+pairwise SVM, RankNet, and LambdaMART.
 
-**Table 1.** Pair-classification accuracy (%).
+**Table 1.** Pair-classification accuracy (%); best per row in **bold**.
 
-| Domain | Dataset | Signal | PWC4.5 | J48 | GBT+J48 |
-|---|---|---|---:|---:|---:|
-| Comp. linguistics | Translator stylometry (21 pairs) | relational | **78.3** | 62 | — |
-| Synthetic | Numeric XOR (noise 0) | relational | **100** | 59 | 59 |
-| Synthetic | Categorical XOR (alphabet ≥5) | relational | **100** | ≤57 | — |
-| Epidemiology | Matched case–control (infert) | relational | **77.6** | 66.1 | — |
-| Neurology | Parkinson's progression | temporal magnitude | 50.6 | 51.7 | **56.5** |
-| Consumer choice | SUSHI preference | absolute | 69.2 | **76.6** | — |
+| Domain | Dataset | Signal | PWC4.5 | J48 | GBT+J48 | best ranker† |
+|---|---|---|---:|---:|---:|---:|
+| Game | Pokémon battles (50k real) | relational | **94.0** (3 leaves) | 94.4 (370 leaves) | — | 92.2 |
+| Comp. linguistics | Translator stylometry (21 pairs) | relational | **78.3** | 62 | — | 80.1 |
+| Epidemiology | Matched case–control (infert) | relational | 77.6 | 66.1 | — | 78.8 |
+| Behav. ecology | Mantis shrimp contests (34) | relational | **61.8** | 55.9 | — | 60.0 |
+| Synthetic | Numeric XOR (noise 0) | relational | **100** | 59 | 59 | 59.6 |
+| Synthetic | Categorical XOR (alphabet ≥5) | relational | **100** | ≤57 | — | — |
+| Synthetic | Condorcet majority (k=5) | non-transitive | **100** | 71 | 97 | 81.3 |
+| Neurology | Parkinson's progression | temporal magnitude | 50.6 | 51.7 | **56.5** | 70.2‡ |
+| Consumer choice | SUSHI preference | absolute | 69.2 | **76.6** | — | 76.9 |
+| Esports | Dota 2 draft (92k real) | additive | 54.8 | 52.3 | — | **57.8** |
+
+† best of pairwise SVM / RankNet / LambdaMART. ‡ optimistic (group leakage in
+plain CV; see repository).
 
 **Reading the results.** PWC4.5 wins where the class depends on the *ordinal
-within-pair relationship* and absolute values are confounded or variable:
-translator stylometry (text length varies, relations are invariant), matched
-case–control (matched covariates cancel), and the XOR constructions. On matched
-case–control it beats C4.5 by 11.5 points with a five-leaf tree that reads
-medically. It does *not* help when the class is a function of absolute values
-(SUSHI preference — item identity dominates) or of the *magnitude* of within-
-pair change (Parkinson's progression — where the difference-vector GBT is the
-only method above chance). These two outcomes are not weaknesses to hide; they
-delimit the method's scope and yield a practitioner decision rule:
+within-pair relationship* and absolute values are confounded or variable — a
+regime that recurs across unrelated real domains: real **Pokémon** battles
+(outcome set by "who is faster", a Speed relation invariant to the huge stat
+scale — a **3-leaf** tree matches C4.5's accuracy where C4.5 needs **370**
+leaves), **translator stylometry** (text length varies, relations are
+invariant), **matched case–control** (matched covariates cancel), real
+**mantis shrimp** contests (settled by *mutual assessment* — relative fighting
+ability), and the synthetic constructions. On non-transitive structure
+(Condorcet majority, XOR-of-relations) PWC4.5 beats *every* method lacking a
+relational representation — including RankNet and LambdaMART by a structural
+margin, since a single ranking score cannot represent a preference cycle.
+
+It does *not* help in three complementary regimes, each an honest boundary:
+(i) **absolute** signal — SUSHI preference, where item identity dominates;
+(ii) **temporal magnitude** — Parkinson's progression, where *how much* a
+biomarker changed matters and the difference-vector GBT is the only method
+above chance; and (iii) **additive** signal — Dota 2 draft, where the outcome
+is a weighted *sum* of many hero win-rates that a linear model captures best.
+These boundaries yield a practitioner decision rule:
 
 > *Use PWC4.5 when pairs are linked by a shared source so absolute values are
-> confounded, and the class depends on the ordinal within-pair relation. Prefer
-> difference-based methods when magnitude of change is the signal, and standard
-> classifiers when absolute values are informative.*
+> confounded, and the class depends on the **dominant, ordinal** within-pair
+> relation. Prefer difference-based methods when the signal is the **magnitude**
+> of change, linear/additive models when it is a **sum** over many weak
+> features, and standard classifiers when **absolute** values are informative.*
 
-**Interpretability exhibit (matched case–control):**
+**Interpretability exhibit (real Pokémon battles):** a single relation — who is
+faster — explains 94% of 50,000 battles in three leaves, where C4.5 needs 370:
 ```
-R(spontaneous) = min : Control
-R(spontaneous) = eq
-|  R(induced) = max : Case
-|  else       : Control
-R(spontaneous) = max : Case
+R(Speed) = max : P1 wins        (the faster Pokémon strikes first and usually wins)
+R(Speed) = min : P2 wins
+R(Speed) = eq  : P2 wins
 ```
 
 ## 4. Impact
