@@ -29,7 +29,7 @@ class Node:
 class PWC45Py:
     def __init__(self, magnitude=False, mag_kind="std", min_leaf=5, max_depth=12,
                  n_thresh=16, deadzone=False, value_split=False,
-                 value_aggs=(0, 1, 2), prefer_rel=0.0):
+                 value_aggs=(0, 1, 2), prefer_rel=0.0, numeric_penalty=False):
         # value_split: also allow C4.5-style thresholds on a SYMMETRIC pair
         # aggregate, which keeps the pair together and is orientation-invariant.
         # value_aggs selects which aggregates are tried: 0=min, 1=max, 2=mean.
@@ -39,6 +39,7 @@ class PWC45Py:
         self.value_split = value_split
         self.value_aggs = value_aggs
         self.prefer_rel = prefer_rel
+        self.numeric_penalty = numeric_penalty  # C4.5-style log2(#thresholds)/N
         self.magnitude = magnitude
         # mag_kind: 'rel'=(a-b)/(|a|+|b|) [old/flawed]; 'raw'=a-b;
         #           'std'=(a-b)/std_j; 'mad'=(a-b)/MAD_j; 'quantile'=q(a)-q(b)
@@ -149,11 +150,13 @@ class PWC45Py:
                         cand = order[:-1] + np.diff(order) / 2
                         if len(cand) > self.n_thresh:
                             cand = np.quantile(cand, np.linspace(0, 1, self.n_thresh))
+                        pen = (np.log2(max(len(cand), 2)) / len(idx)
+                               if self.numeric_penalty else 0.0)
                         for theta in cand:
                             left = g <= theta
                             parts = [np.bincount(yv[left], minlength=self.K).astype(float),
                                      np.bincount(yv[~left], minlength=self.K).astype(float)]
-                            gr = self._gain_ratio(dist, parts)
+                            gr = self._gain_ratio(dist, parts) - pen
                             if gr > best[0] and gr > floor:
                                 best = (gr, ("val", j, aid, float(theta)))
                 if self.magnitude:
